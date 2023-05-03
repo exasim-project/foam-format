@@ -10,7 +10,7 @@ Language:        Cpp
 #   https://develop.openfoam.com/Development/openfoam/-/issues/1634
 #
 # Keep `public:` at the first indentation level
-AccessModifierOffset: -4
+AccessModifierOffset: 0
 # Undocumented guideline: align arguments after an open bracket.
 AlignAfterOpenBracket: BlockIndent
 AlignConsecutiveMacros: false
@@ -54,15 +54,16 @@ BraceWrapping:
   BeforeElse:      true
   BeforeLambdaBody: true
   BeforeWhile:     true
-  IndentBraces:    true
+  IndentBraces:    false
   SplitEmptyFunction: true
   SplitEmptyRecord: true
+  SplitEmptyFunction: false
   SplitEmptyNamespace: true
 # Guideline (almost): Splitting long lines at an = sign. Indent after split.
 # Guideline (almost): Splitting formulae over several lines.
 BreakBeforeBinaryOperators: NonAssignment
 # Always break before braces: if, for, functions, classes, etc.
-BreakBeforeBraces: Allman # Stroustrup # Allman
+BreakBeforeBraces: Custom # Allman # Stroustrup # Allman
 BreakBeforeInheritanceComma: false
 BreakInheritanceList: AfterColon # BeforeColon
 # Guideline (almost): Splitting logical tests over several lines.
@@ -76,7 +77,7 @@ ColumnLimit:     0
 CommentPragmas:  '^ IWYU pragma:'
 CompactNamespaces: false
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
-ConstructorInitializerIndentWidth: 2
+ConstructorInitializerIndentWidth: 4
 ContinuationIndentWidth: 4
 Cpp11BracedListStyle: true
 DeriveLineEnding: true
@@ -134,9 +135,9 @@ PenaltyBreakString: 1000
 PenaltyBreakTemplateDeclaration: 10
 PenaltyExcessCharacter: 1000000
 PenaltyReturnTypeOnItsOwnLine: 60
-PointerAlignment: Middle
+PointerAlignment: Left
 ReflowComments:  true
-ReferenceAlignment: Middle
+ReferenceAlignment: Left
 # Do not change the order of include statements (could be catastrophic for OpenFOAM)
 SortIncludes:    false
 SortUsingDeclarations: false

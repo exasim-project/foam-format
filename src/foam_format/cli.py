@@ -1,4 +1,4 @@
-from .core import format_body, is_header_file
+from .core import format_body, is_not_formatable
 from pathlib import Path
 import os
 import logging
@@ -19,7 +19,7 @@ def main():
             ds[:] = [d for d in ds if d not in exclude]
             for f in fs:
                 # NOTE currently header files are not formated
-                if is_header_file(r, f):
+                if is_not_formatable(r, f):
                     continue
                 # if ".orig" in f:
                 #    continue

@@ -29,12 +29,12 @@ def _apply_rule(
 
 def remove_ws_from_operators(in_str: list[str]) -> list[str]:
     def f(out, line):
-        for op in [" + ", " - ", " / ", " * "]:
+        for op in [" / ", " * "]:
             line = line.replace(op, op.replace(" ", ""))
         out.append(line)
 
     return _apply_rule(
-        in_str, predicate=lambda x: re.findall("[ ][+-/*][ ]", x), reformat=f
+        in_str, predicate=lambda x: re.findall("[ ][/*][ ]", x), reformat=f
     )
 
 
@@ -68,6 +68,7 @@ def fix_indent_comment_or(in_str: list[str]) -> list[str]:
 
 def add_newline_to_func_before_colon(in_str: list[str]) -> list[str]:
     class F:
+        # TODO colon can be also after public and private in which case it should be ignored
         def __init__(self):
             self.state = False
             self.colon = False
@@ -76,7 +77,8 @@ def add_newline_to_func_before_colon(in_str: list[str]) -> list[str]:
             if not line:
                 return
             if not self.colon:
-                out.append(":")
+                ws = len(line) - len(line.lstrip())
+                out.append(" " * (ws - 4) + ":")
                 out.append(line.replace(" : ", " "))
                 # Prepare for list of more members to indent
                 if line.endswith(","):
@@ -100,14 +102,13 @@ def add_newline_to_func_before_colon(in_str: list[str]) -> list[str]:
             def predicate_impl(x):
                 if self.state:
                     return lambda x: True
-                if re.findall(" : ", x):
+                if len(x) == 0:
+                    return False
+                if x.lstrip()[0] == ":":
                     self.state = True
                     return True
 
             return predicate_impl
-
-    def colon_is_in_str(x):
-        return re.findall('"[ :\w]*"', x)
 
     f = F()
 
@@ -115,7 +116,6 @@ def add_newline_to_func_before_colon(in_str: list[str]) -> list[str]:
         in_str,
         predicate=f.predicate,
         reformat=f,
-        ignore=colon_is_in_str,
     )
 
 
@@ -159,6 +159,25 @@ def fix_stream_alignment(in_str: list[str]) -> list[str]:
     return _apply_rule(in_str, predicate=lambda x: re.findall("<<", x), reformat=F())
 
 
+def fix_indentation_of_ifdef(in_str: list[str]) -> list[str]:
+    """ """
+    out = []
+    found = False
+    ws = 0
+    for i, line in enumerate(in_str):
+        # TODO find closing endif
+        if line.startswith("#ifdef FULLDEBUG"):
+            found = True
+            ws = len(in_str[i + 1]) - len(in_str[i + 1].lstrip())
+            out.append(" " * ws + line)
+            continue
+        elif found and line.startswith("#endif"):
+            out.append(" " * ws + line)
+        else:
+            out.append(line)
+    return out
+
+
 def add_newline_to_func_before_parenthesis(in_str: list[str]) -> list[str]:
     """ """
     out = []
@@ -199,7 +218,7 @@ def separate_header(in_str: list[str]) -> tuple[list[str]]:
     return header, body
 
 
-def format_body(fn):
+def format_body(fn, kwargs):
     clang_format_path = pkg_resources.resource_filename(
         "foam_format", "clang_format.body"
     )
@@ -217,7 +236,10 @@ def format_body(fn):
     body = add_newline_to_func_before_parenthesis(body)
     body = add_newline_to_func_before_colon(body)
     # body = remove_ws_from_loop_header(body)
-    body = remove_ws_from_operators(body)
+    if not kwargs.get("skip_operator_ws"):
+        body = remove_ws_from_operators(body)
+    if not kwargs.get("skip_ifdef_FULLDEBUG_indentation"):
+        body = fix_indentation_of_ifdef(body)
     body = fix_stream_alignment(body)
     body = fix_indent_comment_or(body)
     body = indent_namespace(body)

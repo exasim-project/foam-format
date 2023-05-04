@@ -10,7 +10,7 @@ Language:        Cpp
 #   https://develop.openfoam.com/Development/openfoam/-/issues/1634
 #
 # Keep `public:` at the first indentation level
-AccessModifierOffset: 0
+AccessModifierOffset: -4
 # Undocumented guideline: align arguments after an open bracket.
 AlignAfterOpenBracket: BlockIndent
 AlignConsecutiveMacros: false
@@ -84,7 +84,7 @@ DeriveLineEnding: true
 DerivePointerAlignment: false
 DisableFormat:   false
 # Undocumented guideline: add line after "public:" etc (since clang-format 12)
-# EmptyLineAfterAccessModifier: Always
+EmptyLineAfterAccessModifier: Always
 ExperimentalAutoDetectBinPacking: false
 FixNamespaceComments: false
 # Guideline: Macro loops are like for loops, but without a space.

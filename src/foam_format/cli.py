@@ -4,10 +4,17 @@ import os
 import logging
 import sys
 from tqdm import tqdm
+import click
 
 
-def main():
-    fn = Path(sys.argv[1])
+@click.command()
+@click.option("--target", help="The person to greet.")
+@click.option("--skip_operator_ws", help="The person to greet.", is_flag=True)
+@click.option(
+    "--skip_ifdef_FULLDEBUG_indentation", help="The person to greet.", is_flag=True
+)
+def main(**kwargs):
+    fn = Path(kwargs["target"])
     skip_if_orig_exists = False
     logging.basicConfig(format="[FOAM-FORMAT] %(message)s", level=20)
     if fn.is_dir():
@@ -32,5 +39,5 @@ def main():
     logging.info(f"formating")
     lines = 0
     for f in tqdm(file_list):
-        lines += format_body(f)
+        lines += format_body(f, kwargs)
     logging.info(f"reformated {lines} lines")

@@ -67,17 +67,53 @@ def fix_indent_comment_or(in_str: list[str]) -> list[str]:
 
 
 def add_newline_to_func_before_colon(in_str: list[str]) -> list[str]:
-    # TODO needs to check following lines to fix indentation
-    def f(out, line):
-        out.append(":")
-        out.append(line.replace(" : ", " "))
+    class F:
+        def __init__(self):
+            self.state = False
+            self.colon = False
+
+        def __call__(self, out, line):
+            if not line:
+                return
+            if not self.colon:
+                out.append(":")
+                out.append(line.replace(" : ", " "))
+                # Prepare for list of more members to indent
+                if line.endswith(","):
+                    self.state = True
+                    self.colon = True
+                else:
+                    self.state = False
+                    self.colon = False
+                return
+
+            # append ws as long as line is terminated by a comma
+            if line.endswith(","):
+                out.append(line[2:])
+            else:
+                out.append(line[2:])
+                self.state = False
+                self.colon = False
+
+        @property
+        def predicate(self):
+            def predicate_impl(x):
+                if self.state:
+                    return lambda x: True
+                if re.findall(" : ", x):
+                    self.state = True
+                    return True
+
+            return predicate_impl
 
     def colon_is_in_str(x):
         return re.findall('"[ :\w]*"', x)
 
+    f = F()
+
     return _apply_rule(
         in_str,
-        predicate=lambda x: re.findall(" : ", x),
+        predicate=f.predicate,
         reformat=f,
         ignore=colon_is_in_str,
     )
@@ -137,22 +173,14 @@ def add_newline_to_func_before_parenthesis(in_str: list[str]) -> list[str]:
 
 
 def indent_namespace(in_str: list[str]) -> list[str]:
-    out = []
-    state = False
-    for line in in_str:
-        if line.startswith("namespace Foam"):
-            state = True
-            out.append(line)
-        elif line.startswith("{") and state:
-            out.append(line)
-        elif not line.startswith("{") and state:
-            out.append(" " * 4 + line)
-        elif not line.startswith("}") and state:
-            state = False
-            out.append(line)
-        else:
-            out.append(line)
-    return out
+    def f(out, line):
+        out.append(" " * 4 + line)
+
+    return _apply_rule(
+        in_str,
+        predicate=lambda x: x.startswith("make") or x.startswith("define"),
+        reformat=f,
+    )
 
 
 def separate_header(in_str: list[str]) -> tuple[list[str]]:
@@ -192,6 +220,7 @@ def format_body(fn):
     body = remove_ws_from_operators(body)
     body = fix_stream_alignment(body)
     body = fix_indent_comment_or(body)
+    body = indent_namespace(body)
     # body = indent_namespace(body)
     with open(fn, "w") as fh:
         fh.write("\n".join(header))

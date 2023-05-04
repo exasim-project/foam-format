@@ -121,6 +121,7 @@ def add_newline_to_func_before_colon(in_str: list[str]) -> list[str]:
 
 def fix_stream_alignment(in_str: list[str]) -> list[str]:
     class F:
+        # TODO does not work with >>
 
         insert = 0
         keep = ""

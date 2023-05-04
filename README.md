@@ -4,7 +4,6 @@
 Install with pip install . and run foam-format <file_or_folder>
 
 ## Caveats / WIP
-- Currently header files are not automatically formated
-- Indentation of class member initilization is currently broken
+- Currently header files are not automatically formatted
 - position of endls in os needs fixing
-- indendation of namespaces
+- indentation of namespaces

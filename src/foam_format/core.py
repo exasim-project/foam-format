@@ -51,6 +51,7 @@ def remove_ws_from_loop_header(in_str: list[str]) -> list[str]:
 
 
 def fix_indent_comment_or(in_str: list[str]) -> list[str]:
+    """ """
     out = []
     for line in in_str:
         line_striped = line.lstrip()
@@ -61,6 +62,8 @@ def fix_indent_comment_or(in_str: list[str]) -> list[str]:
             or line_striped.startswith("==")
         ) and lw > 0:
             out.append(line[3:])
+        elif (line_striped.startswith("+") or line_striped.startswith("-")) and lw > 0:
+            out.append(line[2:])
         else:
             out.append(line)
     return out
@@ -220,6 +223,10 @@ def separate_header(in_str: list[str]) -> tuple[list[str]]:
 
 
 def format_body(fn, kwargs):
+    """Format a OpenFOAM .C file
+
+    Returns the number of lines changed
+    """
     clang_format_path = pkg_resources.resource_filename(
         "foam_format", "clang_format.body"
     )
@@ -250,19 +257,24 @@ def format_body(fn, kwargs):
         fh.write("\n".join(body))
 
     try:
-        check_output(["diff", "-y", "--suppress-common-lines", fn_orig, fn])
+        #check_output(["diff", "-y", "--suppress-common-lines", fn_orig, fn])
+        check_output(["diff", '--unchanged-line-format=""', '--new-line-format=""', '--old-line-format=":%dn: %L"', fn_orig, fn])
         diff = []
     except CalledProcessError as e:
         diff = "".join(e.output.decode("utf-8")).split("\n")
 
-    os.remove(fn_orig)
-
-    return len(diff)
+    if kwargs.get("inline"):
+        # in inline mode orig files are removed
+        os.remove(fn_orig)
+    else:
+        os.remove(fn)
+        copy(fn_orig, fn)
+    return len(diff), diff
 
 
 def is_not_formatable(r, fn):
     # if the file name is same as folder name it is a header file
-    if fn.endswith(".C"):
+    if fn.endswith(".C") or fn.endswith(".cpp"):
         return False
     if fn.endswith("gz"):
         return True

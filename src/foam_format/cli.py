@@ -5,10 +5,12 @@ import logging
 import sys
 from tqdm import tqdm
 import click
+import re
 
 
 @click.command()
-@click.option("--target", help="The person to greet.")
+@click.option("--inline", help="Whether to directly include changes into file")
+@click.option("--target", help="The target folder to recursively scan.")
 @click.option("--skip_operator_ws", help="The person to greet.", is_flag=True)
 @click.option(
     "--skip_ifdef_FULLDEBUG_indentation", help="The person to greet.", is_flag=True
@@ -38,6 +40,20 @@ def main(**kwargs):
 
     logging.info(f"formating")
     lines = 0
+    diffs = {}
     for f in tqdm(file_list):
-        lines += format_body(f, kwargs)
-    logging.info(f"reformated {lines} lines")
+        l, diff =  format_body(f, kwargs)
+        diffs[f] = diff
+        lines += l
+
+    if lines != 0 and not kwargs.get("inline"):
+        logging.warn(f"Reformating needed")
+        for f, diff in diffs.items():
+            for line in diff:
+                match = re.search(":[0-9]*:", line)
+                if match:
+                    line_nr = match.group(0) 
+                    print(f"::error file={f},line={line_nr}::Needs reformating")
+        sys.exit(1)
+
+    logging.info(f"reformated {lines} lines in {len(file_list)} files")

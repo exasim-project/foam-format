@@ -1,0 +1,21 @@
+[project]
+name = "foam-format"
+version = "0.1.0"
+
+dependencies = [
+"click",
+"tqdm",
+]
+
+[project.optional-dependencies]
+doc = [
+]
+test = [
+]
+
+[tool.black]
+preview = true
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203"]
